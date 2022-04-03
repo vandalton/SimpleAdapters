@@ -1,6 +1,5 @@
 #include <MouseController.h>
 #include "KeyboardParser.h"
-#include <PS4BT.h>
 #include <PS4USB.h>
 
 // Amiga joystick pinout - seen from the front
@@ -51,13 +50,13 @@ PortInit portInit;
 
 USBHost usb;
 
-PS4USB ps4usb(&usb);
-BTD bt(&usb); 
-PS4BT ps4bt(&bt, PAIR);
+//BTD bt(&usb); 
+//PS4BT ps4bt(&bt);
+//PS4USB ps4usb(&usb);
 
 KbdRptParser parser;
 
-/*MouseController mouse(usb);
+MouseController mouse(usb);
 
 void mouseMoved() {
   mouse_dx = mouse.getXChange();
@@ -91,7 +90,7 @@ void mouseReleased() {
   if (!mouse.getButton(RIGHT_BUTTON) && parser.mouse_right) {
     parser.mouse_right = false;
   }
-}*/
+}
 
 void setup() {   
   if (usb.Init() == -1) {
@@ -112,7 +111,7 @@ void loop() {
   mouse_right = parser.mouse_right;
   mouse_middle = parser.mouse_middle;
   
-  if (ps4bt.connected()) {    
+  /*if (ps4bt.connected()) {    
     up |= ps4bt.getButtonPress(UP) || ps4bt.getAnalogHat(LeftHatY) < 64;
     down |= ps4bt.getButtonPress(DOWN) || ps4bt.getAnalogHat(LeftHatY) > 192;
     left |= ps4bt.getButtonPress(LEFT) || ps4bt.getAnalogHat(LeftHatX) < 64;
@@ -125,9 +124,9 @@ void loop() {
       mouse_dx = (ps4bt.getAnalogHat(RightHatX) > 192 ? 1 : 0) - (ps4bt.getAnalogHat(RightHatX) < 64 ? 1 : 0);
       mouse_dy = (ps4bt.getAnalogHat(RightHatY) > 192 ? 1 : 0) - (ps4bt.getAnalogHat(RightHatY) < 64 ? 1 : 0);
     }
-  }
+  }*/
 
- if (ps4usb.connected()) {    
+ /*if (ps4usb.connected()) {    
     up |= ps4usb.getButtonPress(UP) || ps4usb.getAnalogHat(LeftHatY) < 64;
     down |= ps4usb.getButtonPress(DOWN) || ps4usb.getAnalogHat(LeftHatY) > 192;
     left |= ps4usb.getButtonPress(LEFT) || ps4usb.getAnalogHat(LeftHatX) < 64;
@@ -140,13 +139,22 @@ void loop() {
       mouse_dx = (ps4usb.getAnalogHat(RightHatX) > 192 ? 1 : 0) - (ps4usb.getAnalogHat(RightHatX) < 64 ? 1 : 0);
       mouse_dy = (ps4usb.getAnalogHat(RightHatY) > 192 ? 1 : 0) - (ps4usb.getAnalogHat(RightHatY) < 64 ? 1 : 0);
     }
-  }
-
+  }*/
+  
   if(mouse_dx != 0 || mouse_dy != 0) {
     int dir_x = mouse_dx > 0 ? 1 : -1;
-    int steps_x = 4*abs(mouse_dx);
+    mouse_dx = abs(mouse_dx);
+    if(mouse_dx != 0)
+      mouse_dx = ceil(mouse_dx / 3.0);
+    
+    int steps_x = 4*mouse_dx;
+    
     int dir_y = mouse_dy > 0 ? 1 : -1;
-    int steps_y = 4*abs(mouse_dy);
+    mouse_dy = abs(mouse_dy);
+    if(mouse_dy != 0)
+      mouse_dy = ceil(mouse_dy / 3.0);
+    
+    int steps_y = 4*mouse_dy;
 
     int steps = max(steps_x, steps_y);
 
