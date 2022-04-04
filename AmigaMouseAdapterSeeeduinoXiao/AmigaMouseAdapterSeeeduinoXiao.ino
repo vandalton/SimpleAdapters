@@ -59,13 +59,13 @@ KbdRptParser parser;
 MouseController mouse(usb);
 
 void mouseMoved() {
-  mouse_dx = mouse.getXChange();
-  mouse_dy = mouse.getYChange();
+  mouse_dx += mouse.getXChange();
+  mouse_dy += mouse.getYChange();
 }
 
 void mouseDragged() {
-  mouse_dx = mouse.getXChange();
-  mouse_dy = mouse.getYChange();
+  mouse_dx += mouse.getXChange();
+  mouse_dy += mouse.getYChange();
 }
 
 void mousePressed() {
@@ -144,15 +144,11 @@ void loop() {
   if(mouse_dx != 0 || mouse_dy != 0) {
     int dir_x = mouse_dx > 0 ? 1 : -1;
     mouse_dx = abs(mouse_dx);
-    if(mouse_dx != 0)
-      mouse_dx = ceil(mouse_dx / 3.0);
     
     int steps_x = 4*mouse_dx;
     
     int dir_y = mouse_dy > 0 ? 1 : -1;
     mouse_dy = abs(mouse_dy);
-    if(mouse_dy != 0)
-      mouse_dy = ceil(mouse_dy / 3.0);
     
     int steps_y = 4*mouse_dy;
 
