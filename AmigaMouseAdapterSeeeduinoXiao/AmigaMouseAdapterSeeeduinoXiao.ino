@@ -18,6 +18,8 @@
 #define OUT_MOUSE_RIGHT_SECOND 6
 #define OUT_MOUSE_MIDDLE 4
 
+#define SCALE 0.25f
+
 int outputs[8] = {OUT_UP, OUT_DOWN, OUT_LEFT, OUT_RIGHT, OUT_FIRE, OUT_MOUSE_RIGHT, OUT_MOUSE_RIGHT_SECOND, OUT_MOUSE_MIDDLE};
 
 volatile bool up = false, 
@@ -28,9 +30,10 @@ volatile bool up = false,
               mouse_right = false,
               mouse_middle = false;
 
-volatile int  mouse_dx = 0,
-              mouse_dy = 0,
-              pos_x = 0,
+volatile float mouse_dx = 0.0,
+               mouse_dy = 0.0;
+               
+volatile int  pos_x = 0,
               pos_y = 0;
 
 int pattern_a[4] = { 1, 1, 0, 0 };
@@ -50,22 +53,18 @@ PortInit portInit;
 
 USBHost usb;
 
-//BTD bt(&usb); 
-//PS4BT ps4bt(&bt);
-//PS4USB ps4usb(&usb);
-
 KbdRptParser parser;
 
 MouseController mouse(usb);
 
 void mouseMoved() {
-  mouse_dx += mouse.getXChange();
-  mouse_dy += mouse.getYChange();
+  mouse_dx += mouse.getXChange() * SCALE;
+  mouse_dy += mouse.getYChange() * SCALE;
 }
 
 void mouseDragged() {
-  mouse_dx += mouse.getXChange();
-  mouse_dy += mouse.getYChange();
+  mouse_dx += mouse.getXChange() * SCALE;
+  mouse_dy += mouse.getYChange() * SCALE;
 }
 
 void mousePressed() {
@@ -109,79 +108,36 @@ void loop() {
   right = parser.right;
   fire = parser.fire || parser.mouse_left;
   mouse_right = parser.mouse_right;
-  mouse_middle = parser.mouse_middle;
+  mouse_middle = parser.mouse_middle;  
+ 
+  int dir_x = mouse_dx > 0 ? 1 : -1;
+  float mouse_dx_abs = abs(mouse_dx);
   
-  /*if (ps4bt.connected()) {    
-    up |= ps4bt.getButtonPress(UP) || ps4bt.getAnalogHat(LeftHatY) < 64;
-    down |= ps4bt.getButtonPress(DOWN) || ps4bt.getAnalogHat(LeftHatY) > 192;
-    left |= ps4bt.getButtonPress(LEFT) || ps4bt.getAnalogHat(LeftHatX) < 64;
-    right |= ps4bt.getButtonPress(RIGHT) || ps4bt.getAnalogHat(LeftHatX) > 192;
-    fire |= ps4bt.getButtonPress(CROSS);
-    mouse_right |= ps4bt.getButtonPress(CIRCLE);
-    mouse_middle |= ps4bt.getButtonPress(TRIANGLE);
+  int dir_y = mouse_dy > 0 ? 1 : -1;
+  float mouse_dy_abs = abs(mouse_dy);
 
-    if(mouse_dx == 0 && mouse_dy == 0) {
-      mouse_dx = (ps4bt.getAnalogHat(RightHatX) > 192 ? 1 : 0) - (ps4bt.getAnalogHat(RightHatX) < 64 ? 1 : 0);
-      mouse_dy = (ps4bt.getAnalogHat(RightHatY) > 192 ? 1 : 0) - (ps4bt.getAnalogHat(RightHatY) < 64 ? 1 : 0);
+  if(mouse_dx_abs > 0.95) {
+    for(int steps_x = 4;steps_x > 0;--steps_x) {
+      digitalWrite(OUT_DOWN, pattern_a[pos_x]);
+      digitalWrite(OUT_RIGHT, pattern_b[pos_x]);
+      pos_x = (pos_x + dir_x + 4) % 4;    
     }
-  }*/
-
- /*if (ps4usb.connected()) {    
-    up |= ps4usb.getButtonPress(UP) || ps4usb.getAnalogHat(LeftHatY) < 64;
-    down |= ps4usb.getButtonPress(DOWN) || ps4usb.getAnalogHat(LeftHatY) > 192;
-    left |= ps4usb.getButtonPress(LEFT) || ps4usb.getAnalogHat(LeftHatX) < 64;
-    right |= ps4usb.getButtonPress(RIGHT) || ps4usb.getAnalogHat(LeftHatX) > 192;
-    fire |= ps4usb.getButtonPress(CROSS);
-    mouse_right |= ps4usb.getButtonPress(CIRCLE);
-    mouse_middle |= ps4usb.getButtonPress(TRIANGLE);
-
-    if(mouse_dx == 0 && mouse_dy == 0) {
-      mouse_dx = (ps4usb.getAnalogHat(RightHatX) > 192 ? 1 : 0) - (ps4usb.getAnalogHat(RightHatX) < 64 ? 1 : 0);
-      mouse_dy = (ps4usb.getAnalogHat(RightHatY) > 192 ? 1 : 0) - (ps4usb.getAnalogHat(RightHatY) < 64 ? 1 : 0);
-    }
-  }*/
-  
-  if(mouse_dx != 0 || mouse_dy != 0) {
-    int dir_x = mouse_dx > 0 ? 1 : -1;
-    mouse_dx = abs(mouse_dx);
     
-    int steps_x = 4*mouse_dx;
-    
-    int dir_y = mouse_dy > 0 ? 1 : -1;
-    mouse_dy = abs(mouse_dy);
-    
-    int steps_y = 4*mouse_dy;
-
-    int steps = max(steps_x, steps_y);
-
-    while(steps-- > 0) {
-      if(steps_x-- > 0) {
-        digitalWrite(OUT_DOWN, pattern_a[pos_x]);
-        digitalWrite(OUT_RIGHT, pattern_b[pos_x]);
-        pos_x = (pos_x + dir_x + 4) % 4;
-      }
-      
-      if(steps_y-- > 0) {
-        digitalWrite(OUT_UP, pattern_a[pos_y]);
-        digitalWrite(OUT_LEFT, pattern_b[pos_y]);
-        pos_y = (pos_y + dir_y + 4) % 4;
-      }
-      
-      delayMicroseconds(50);
-    }
-
-    mouse_dx = 0;
-    mouse_dy = 0;
-
-    delay(10);
-  }
-  else {
-    digitalWrite(OUT_UP, up ? LOW : HIGH);
-    digitalWrite(OUT_DOWN, down ? LOW : HIGH);
-    digitalWrite(OUT_LEFT, left ? LOW : HIGH);
-    digitalWrite(OUT_RIGHT, right ? LOW : HIGH);
+    mouse_dx -= dir_x;
+    delayMicroseconds(50);
   }
 
+  if(mouse_dy_abs > 0.95) {
+    for(int steps_y = 4;steps_y > 0;--steps_y) {
+      digitalWrite(OUT_UP, pattern_a[pos_y]);
+      digitalWrite(OUT_LEFT, pattern_b[pos_y]);
+      pos_y = (pos_y + dir_y + 4) % 4;    
+    }
+    
+    mouse_dy -= dir_y;
+    delayMicroseconds(50);
+  }
+  
   digitalWrite(OUT_FIRE, fire ? LOW : HIGH);
   digitalWrite(OUT_MOUSE_RIGHT, mouse_right ? LOW : HIGH);
   digitalWrite(OUT_MOUSE_RIGHT_SECOND, mouse_right ? LOW : HIGH);
