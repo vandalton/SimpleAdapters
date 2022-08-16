@@ -18,7 +18,8 @@
 #define OUT_MOUSE_RIGHT_SECOND 6
 #define OUT_MOUSE_MIDDLE 4
 
-#define SCALE 0.25f
+int scale = 0;
+float scales[3] = {0.25f, 0.5f, 1.0f};
 
 int outputs[8] = {OUT_UP, OUT_DOWN, OUT_LEFT, OUT_RIGHT, OUT_FIRE, OUT_MOUSE_RIGHT, OUT_MOUSE_RIGHT_SECOND, OUT_MOUSE_MIDDLE};
 
@@ -58,13 +59,13 @@ KbdRptParser parser;
 MouseController mouse(usb);
 
 void mouseMoved() {
-  mouse_dx += mouse.getXChange() * SCALE;
-  mouse_dy += mouse.getYChange() * SCALE;
+  mouse_dx += mouse.getXChange() * scales[scale];
+  mouse_dy += mouse.getYChange() * scales[scale];
 }
 
 void mouseDragged() {
-  mouse_dx += mouse.getXChange() * SCALE;
-  mouse_dy += mouse.getYChange() * SCALE;
+  mouse_dx += mouse.getXChange() * scales[scale];
+  mouse_dy += mouse.getYChange() * scales[scale];
 }
 
 void mousePressed() {
@@ -73,6 +74,10 @@ void mousePressed() {
   }
   if (mouse.getButton(MIDDLE_BUTTON)) {
     parser.mouse_middle = true;
+    if (parser.mouse_left && parser.mouse_right) {
+      ++scale;
+      if(scale == 3) scale = 0;
+    }
   }
   if (mouse.getButton(RIGHT_BUTTON)) {
     parser.mouse_right = true;
