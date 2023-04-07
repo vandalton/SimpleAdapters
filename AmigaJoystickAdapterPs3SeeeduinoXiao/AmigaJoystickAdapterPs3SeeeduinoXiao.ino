@@ -1,6 +1,5 @@
-#include <MouseController.h>
 #include "KeyboardParser.h"
-#include <PS4USB.h>
+#include <PS3USB.h>
 
 // Amiga joystick pinout - seen from the front
 // \1 2 3 4 5/
@@ -50,7 +49,7 @@ PortInit portInit;
 
 USBHost usb;
 
-PS4USB ps4usb(&usb);
+PS3USB ps3usb(&usb);
 
 KbdRptParser parser;
 
@@ -73,18 +72,18 @@ void loop() {
   mouse_right = parser.mouse_right;
   mouse_middle = parser.mouse_middle;
 
-  if (ps4usb.connected()) {    
-    up |= ps4usb.getButtonPress(UP) || ps4usb.getButtonPress(CROSS) || ps4usb.getAnalogHat(LeftHatY) < 64;
-    down |= ps4usb.getButtonPress(DOWN) || ps4usb.getAnalogHat(LeftHatY) > 192;
-    left |= ps4usb.getButtonPress(LEFT) || ps4usb.getAnalogHat(LeftHatX) < 64;
-    right |= ps4usb.getButtonPress(RIGHT) || ps4usb.getAnalogHat(LeftHatX) > 192;
-    fire |= ps4usb.getButtonPress(SQUARE);
-    mouse_right |= ps4usb.getButtonPress(CIRCLE);
-    mouse_middle |= ps4usb.getButtonPress(TRIANGLE);
+  if (ps3usb.PS3Connected) {    
+    up |= ps3usb.getButtonPress(UP) || ps3usb.getButtonPress(CROSS) || ps3usb.getAnalogHat(LeftHatY) < 64;
+    down |= ps3usb.getButtonPress(DOWN) || ps3usb.getAnalogHat(LeftHatY) > 192;
+    left |= ps3usb.getButtonPress(LEFT) || ps3usb.getAnalogHat(LeftHatX) < 64;
+    right |= ps3usb.getButtonPress(RIGHT) || ps3usb.getAnalogHat(LeftHatX) > 192;
+    fire |= ps3usb.getButtonPress(SQUARE);
+    mouse_right |= ps3usb.getButtonPress(CIRCLE);
+    mouse_middle |= ps3usb.getButtonPress(TRIANGLE);
 
     if(mouse_dx == 0 && mouse_dy == 0) {
-      mouse_dx = (ps4usb.getAnalogHat(RightHatX) > 192 ? 1 : 0) - (ps4usb.getAnalogHat(RightHatX) < 64 ? 1 : 0);
-      mouse_dy = (ps4usb.getAnalogHat(RightHatY) > 192 ? 1 : 0) - (ps4usb.getAnalogHat(RightHatY) < 64 ? 1 : 0);
+      mouse_dx = (ps3usb.getAnalogHat(RightHatX) > 192 ? 1 : 0) - (ps3usb.getAnalogHat(RightHatX) < 64 ? 1 : 0);
+      mouse_dy = (ps3usb.getAnalogHat(RightHatY) > 192 ? 1 : 0) - (ps3usb.getAnalogHat(RightHatY) < 64 ? 1 : 0);
     }
   }
 
