@@ -49,13 +49,79 @@ PortInit portInit;
 
 MIDI_CREATE_DEFAULT_INSTANCE();
 
+void handleNoteAction(byte note, bool pressed)
+{
+  if (note == 60) // C4
+    key1 = pressed;
+  else if (note == 61)
+    key2 = pressed;
+  else if (note == 62)
+    key3 = pressed;
+  else if (note == 63)
+    key4 = pressed;
+  else if (note == 64)
+    key5 = pressed;
+  else if (note == 65)
+    key6 = pressed;
+  else if (note == 66)
+    key7 = pressed;
+  else if (note == 67)
+    key8 = pressed;
+  else if (note == 68)
+    key9 = pressed;
+  else if (note == 69) 
+    keyAsterisk = pressed;
+  else if (note == 70)
+    key0 = pressed;
+  else if (note == 71)
+    keyHash = pressed;
+
+}
+
+void handleNoteOn(byte inChannel, byte inNote, byte inVelocity)
+{
+  handleNoteAction(inNote, true);
+}
+
+void handleNoteOff(byte inChannel, byte inNote, byte inVelocity)
+{
+  handleNoteAction(inNote, false);
+}
+
 void setup() {
+  MIDI.setHandleNoteOn(handleNoteOn);
+  MIDI.setHandleNoteOff(handleNoteOff);
   MIDI.begin(MIDI_CHANNEL_OMNI); 
 }
 
 void loop() {
-  if (MIDI.read())
+  bool row1 = digitalRead(IN_ROW_1);
+  bool row2 = digitalRead(IN_ROW_2);
+  bool row3 = digitalRead(IN_ROW_3);
+  bool row4 = digitalRead(IN_ROW_4);
+
+  if (!row1)
   {
-    MIDI.sendNoteOn(42, 127, 1);
+    digitalWrite(OUT_COL_1, keyHash ? LOW : HIGH);
+    digitalWrite(OUT_COL_2, key0 ? LOW : HIGH);
+    digitalWrite(OUT_COL_3, keyAsterisk ? LOW : HIGH);
+  }
+  else if(!row2)
+  {
+    digitalWrite(OUT_COL_1, key9 ? LOW : HIGH);
+    digitalWrite(OUT_COL_2, key8 ? LOW : HIGH);
+    digitalWrite(OUT_COL_3, key7 ? LOW : HIGH);
+  }
+  else if(!row3)
+  {
+    digitalWrite(OUT_COL_1, key6 ? LOW : HIGH);
+    digitalWrite(OUT_COL_2, key5 ? LOW : HIGH);
+    digitalWrite(OUT_COL_3, key4 ? LOW : HIGH);
+  }
+  else if(!row4)
+  {
+    digitalWrite(OUT_COL_1, key3 ? LOW : HIGH);
+    digitalWrite(OUT_COL_2, key2 ? LOW : HIGH);
+    digitalWrite(OUT_COL_3, key1 ? LOW : HIGH);
   }
 }
