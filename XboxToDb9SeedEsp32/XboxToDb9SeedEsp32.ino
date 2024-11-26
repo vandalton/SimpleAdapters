@@ -82,6 +82,11 @@ void processGamepad(ControllerPtr ctl) {
   fire = ctl->x();
   mouse_right = ctl->b();
   mouse_middle = ctl->y();
+
+  if (mouse_dx == 0 && mouse_dy == 0) {
+    mouse_dx = (ctl->axisRX() > 256 ? 1 : 0) - (ctl->axisRX() < -256 ? 1 : 0);
+    mouse_dy = (ctl->axisRY() > 256 ? 1 : 0) - (ctl->axisRY() < -256 ? 1 : 0);
+  }
 }
 
 void processControllers() {
@@ -102,10 +107,41 @@ void loop() {
     if (dataUpdated)
         processControllers();
 
-    digitalWrite(OUT_UP, up ? LOW : HIGH);
-    digitalWrite(OUT_DOWN, down ? LOW : HIGH);
-    digitalWrite(OUT_LEFT, left ? LOW : HIGH);
-    digitalWrite(OUT_RIGHT, right ? LOW : HIGH);
+    if (mouse_dx != 0 || mouse_dy != 0) {
+      int dir_x = mouse_dx > 0 ? 1 : -1;
+      int steps_x = 4*abs(mouse_dx);
+      int dir_y = mouse_dy > 0 ? 1 : -1;
+      int steps_y = 4*abs(mouse_dy);
+  
+      int steps = max(steps_x, steps_y);
+  
+      while(steps-- > 0) {
+        if(steps_x-- > 0) {
+          digitalWrite(OUT_DOWN, pattern_a[pos_x]);
+          digitalWrite(OUT_RIGHT, pattern_b[pos_x]);
+          pos_x = (pos_x + dir_x + 4) % 4;
+        }
+        
+        if(steps_y-- > 0) {
+          digitalWrite(OUT_UP, pattern_a[pos_y]);
+          digitalWrite(OUT_LEFT, pattern_b[pos_y]);
+          pos_y = (pos_y + dir_y + 4) % 4;
+        }
+        
+        delayMicroseconds(50);
+      }
+  
+      mouse_dx = 0;
+      mouse_dy = 0;
+  
+      delay(10);
+    }
+    else {
+      digitalWrite(OUT_UP, up ? LOW : HIGH);
+      digitalWrite(OUT_DOWN, down ? LOW : HIGH);
+      digitalWrite(OUT_LEFT, left ? LOW : HIGH);
+      digitalWrite(OUT_RIGHT, right ? LOW : HIGH);
+    }
 
     digitalWrite(OUT_FIRE, fire ? LOW : HIGH);
     digitalWrite(OUT_MOUSE_RIGHT, mouse_right ? LOW : HIGH);
@@ -114,3 +150,4 @@ void loop() {
   
     delay(10);
 }
+  
